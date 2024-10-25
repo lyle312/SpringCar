@@ -1,0 +1,20 @@
+<html lagn="ko" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<!--headerFragment 선언-->
+<div th:fragment="headerFragment">
+  <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <a class="navbar-brand btn btn-link text-secondary" href="/home">일산렌터카</a>
+    <div class="ml-auto">
+      <form style="float: left; padding:10px;" sec:authorize="isAuthenticated()" class="form-inline my-2 my-lg-0" th:action="@{/mypage}" method="get">
+        <button class="btn btn-link text-secondary mx-1" type="submit">마이 페이지</button>
+      </form>
+      <form style="float: left; padding:10px;" sec:authorize="hasAuthority('ADMIN')" class="form-inline my-2 my-lg-0" th:action="@{/admin}" method="get">
+        <button class="btn btn-link text-secondary my-2 my-sm-0" type="submit">관리자 페이지</button>
+      </form>
+      <form style="float: left; padding:10px;" sec:authorize="isAuthenticated()" class="form-inline my-2 my-lg-0" th:action="@{/logout}" method="post">
+        <button class="btn btn-link text-danger" type="submit">로그아웃</button>
+      </form>
+    </div>
+    <!-- other navbar content -->
+  </nav>
+</div>
+</html>
