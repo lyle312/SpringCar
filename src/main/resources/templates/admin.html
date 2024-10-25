@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/default_layout}">
+<head>
+    <title>Admin</title>
+</head>
+<!-- Content -->
+<div layout:fragment="content">
+    <div class="container my-4">
+        <div class="card bg-light rounded">
+            <div class="card-body">
+                <div class="text-center">
+                    <!-- Your main content here -->
+                    <h2>관리자 페이지 입니다.</h2>
+                    <br>
+                    <p>원하는 서비스를 선택해 주세요.</p>
+                    <div class="mt-3">
+                        <button type="button" class="btn btn-secondary mx-1" onclick="location.href='/car/manage'">차량 관리</button>
+                        <button type="button" class="btn btn-secondary mx-1" onclick="location.href='/car/model/manage'">취급 차량 관리</button>
+                        <button type="button" class="btn btn-secondary mx-1" onclick="location.href='/authorize/manage'">권한 관리</button>
+                    </div>
+                    <div class="mt-3">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</html>

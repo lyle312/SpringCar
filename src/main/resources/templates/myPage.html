@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="~{layouts/default_layout}">
+<head>
+    <title>My Page</title>
+</head>
+<!-- Content -->
+<div layout:fragment="content">
+    <div class="container my-4">
+        <div class="card bg-light rounded">
+            <div class="card-body">
+                <div class="text-center">
+                    <!-- Your main content here -->
+                    <div>
+                        <h3 th:text="'이름: ' + ${userDto.name}">이름</h3>
+                        <span th:text="'소속: ' + ${userDto.userGroup}">소속</span>
+                    </div>
+                    <br>
+                    <p>원하는 서비스를 선택해 주세요.</p>
+                    <button sec:authorize="hasAuthority('CAR_RENTAL')" type="button" class="btn btn-secondary mx-1" onclick="location.href='/car/rental/history'">차량 대여 내역</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</html>

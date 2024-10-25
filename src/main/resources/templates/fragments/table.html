@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+        xmlns:th="http://www.thymeleaf.org"
+>
+<head>
+    <style>
+        th:hover {
+            background-color: #f8f9fa; /* Light grey background on hover */
+            cursor: pointer; /* Optional: Changes cursor to indicate clickable */
+        }
+    </style>
+</head>
+<body>
+<div
+        th:fragment="commonTable(headers, dataList, type)"
+        class="rounded-lg shadow mt-2"
+        style="overflow: hidden"
+>
+    <table class="table table-hover table-borderless text-center">
+        <thead class="bg-info text-white">
+        <tr>
+            <!-- 테이블 헤더 -->
+            <th
+                    th:each="header, iter : ${headers}"
+                    th:if="!${type == 'manage' && iter.index == 4}"
+                    th:attr="data-index=${iter.index}"
+                    onclick="sortTable(this)"
+                    th:text="${header}"
+            ></th>
+            <!-- 차량 관리 액션 버튼 유무 -->
+            <th
+                    th:if="${type == 'manage'}"
+                    sec:authorize="hasAuthority('ADMIN')"
+                    th:text="${headers[4]}"
+            ></th>
+        </tr>
+        </thead>
+
+        <tbody>
+        <!-- 테이블 데이터 -->
+        <tr th:each="dataObj : ${dataList}">
+            <!-- 컬럼 3개 테이블 -->
+            <td
+                    th:if="${type == 'chargeSpot' && iter.index != 0}"
+                    th:each="data, iter : ${dataObj}"
+                    th:text="${data}"
+                    onclick="openRentalModal(this.parentNode, this)"
+                    class="align-middle py-4"
+            ></td>
+            <!-- 컬럼 4개 테이블 -->
+            <td
+                    th:if="${type == 'modelManage' && iter.index != 0 && iter.index != 3}"
+                    th:each="data, iter : ${dataObj}"
+                    th:text="${data}"
+                    th:attr="data-model-image=${dataObj[2]}"
+                    onclick="openRentalModal(this.parentNode, this)"
+                    class="align-middle py-4"
+            ></td>
+            <!-- 컬럼 5개 테이블-->
+            <td
+                    th:if="${type == 'reserveHistory' && iter.index != 0 && iter.index != 4}"
+                    th:each="data, iter : ${dataObj}"
+                    th:text="${data}"
+                    th:attr="data-model-image=${dataObj[4]}"
+                    onclick="openRentalModal(this.parentNode, this)"
+                    class="align-middle py-4"
+            ></td>
+            <!-- 컬럼 6개 테이블 -->
+            <td
+                    th:if="${(type == 'manage' || type == 'rental')
+                    && iter.index != 0 && iter.index != 5}"
+                    th:each="data, iter : ${dataObj}"
+                    th:text="${data}"
+                    th:attr="data-model-image=${dataObj[5]}"
+                    onclick="openRentalModal(this.parentNode, this)"
+                    class="align-middle py-4">
+            ></td>
+            <!-- 컬럼 7개 테이블(이미지 포함) -->
+            <td
+                    th:if="${type == 'rentalHistory' && iter.index != 0 && iter.index != 6}"
+                    th:each="data, iter : ${dataObj}"
+                    th:text="${data}"
+                    th:attr="data-model-image=${dataObj[6]}"
+                    onclick="openRentalModal(this.parentNode, this)"
+                    class="align-middle py-4"
+            ></td>
+            <!-- 컬럼 7개 테이블 -->
+            <td
+                    th:if="${type == 'chargeHistory' && iter.index != 0}"
+                    th:each="data, iter : ${dataObj}"
+                    th:text="${data}"
+                    onclick="openRentalModal(this.parentNode, this)"
+                    class="align-middle py-4"
+            ></td>
+            <!-- 컬럼 9개 테이블 -->
+            <td
+                    th:if="${type == 'driveHistory' && iter.index != 0}"
+                    th:each="data, iter : ${dataObj}"
+                    th:text="${data}"
+                    onclick="openRentalModal(this.parentNode, this)"
+                    class="align-middle py-4"
+            ></td>
+
+            <!-- ///////////////////////////////////// 아래는 버튼들 ////////////////////////////////////////// -->
+
+            <!-- manage 테이블 -->
+            <td th:if="${type} == 'manage'" sec:authorize="hasAuthority('ADMIN')" class="align-middle">
+                <button
+                        type="button"
+                        class="btn btn-info btn-sm"
+                        th:attr="data-target='#editCarModal-' + ${dataObj[0]}"
+                        data-toggle="modal"
+                >
+                    수정
+                </button>
+                <button
+                        type="button"
+                        class="btn btn-secondary btn-sm"
+                        th:attr="data-car-number=${dataObj[1]}"
+                        onclick="deleteCar(this)"
+                >
+                    삭제
+                </button>
+            </td>
+
+            <!-- modelMange 테이블 -->
+            <td th:if="${type} == 'modelManage'" sec:authorize="hasAuthority('ADMIN')" class="align-middle">
+                <button
+                        type="button"
+                        class="btn btn-outline-info btn-sm"
+                        th:attr="data-target='#editCarModal-' + ${dataObj[0]}"
+                        data-toggle="modal"
+                >
+                    수정
+                </button>
+                <button
+                        type="button"
+                        class="btn btn-outline-danger btn-sm"
+                        th:attr="data-model-id=${dataObj[0]}"
+                        onclick="deleteModel(this)"
+                >
+                    삭제
+                </button>
+            </td>
+
+            <!-- rental 테이블 -->
+            <td th:if="${type} == 'rental'" sec:authorize="hasAuthority('CAR_RENTAL')" class="align-middle">
+                <button
+                        type="button"
+                        class="btn btn-info"
+                        th:attr="data-car-id=${dataObj[0]}"
+                        onclick="rentCar(this); event.stopPropagation();"
+                >
+                    대여
+                </button>
+            </td>
+
+            <!-- rentalHistory 테이블 -->
+            <td th:if="${type} == 'rentalHistory'" sec:authorize="hasAuthority('CAR_RENTAL')" class="align-middle">
+                <button
+                        th:if="${dataObj[5] == '대여 신청'}"
+                        type="button"
+                        class="btn btn-outline-danger"
+                        th:attr="data-history-id=${dataObj[0]}"
+                        onclick="cancelRental(this)"
+                >
+                    취소
+                </button>
+                <button
+                        th:if="${dataObj[5] == '대여 중'}"
+                        type="button"
+                        class="btn btn-outline-info"
+                        th:attr="data-history-id=${dataObj[0]}"
+                        onclick="returnCar(this)"
+                >
+                    반납
+                </button>
+                <button
+                        th:if="${dataObj[5] == '반납 완료'}"
+                        type="button"
+                        class="btn btn-outline-secondary"
+                        disabled
+                >
+                    반납 완료
+                </button>
+                <button
+                        th:if="${dataObj[5] == '취소 완료'}"
+                        type="button"
+                        class="btn btn-outline-secondary"
+                        disabled
+                >
+                    취소 완료
+                </button>
+            </td>
+
+            <!-- reserveHistory 테이블 -->
+            <td th:if="${type} == 'reserveHistory'"
+                sec:authorize="hasAuthority('TRACK_RESERVE')" class="align-middle">
+                <button
+                        th:if="${dataObj[3] == '예약 신청'}"
+                        type="button"
+                        class="btn btn-outline-danger"
+                        th:attr="data-history-id=${dataObj[0]}"
+                        onclick="cancelReserve(this)"
+                >
+                    취소
+                </button>
+                <button
+                        th:if="${dataObj[3] == '예약 완료'}"
+                        type="button"
+                        class="btn btn-link text-secondary"
+                        disabled
+                >
+                    예약 완료
+                </button>
+                <button
+                        th:if="${dataObj[3] == '취소 완료'}"
+                        type="button"
+                        class="btn btn-link text-secondary"
+                        disabled
+                >
+                    취소 완료
+                </button>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+    <!--상세 모달-->
+    <div class="modal fade" id="rentalModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">상세 정보</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body px-5 pt-5 pb-4">
+                    <div id="rentalData" class="container"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        function openRentalModal(row, cell) {
+            // 모달에 데이터 세팅
+            const modalData = document.getElementById('rentalData');
+            // 여긴 나중에 데이터 수정되면 엘레먼트 참조로 수정
+            const imgUrl = cell.getAttribute('data-model-image');
+            if (imgUrl) {
+                modalData.innerHTML = '<img src="' + imgUrl + '" alt="이미지" width="100%" height="100%" class="mb-5"/>';
+            } else {
+                modalData.innerHTML = '';
+            }
+            const modalTitle = [[${headers}]];
+            let i = 0;
+            for (; i < row.cells.length - 1; i++) {
+                modalData.innerHTML +=
+                    '<div class="mb-4">' +
+                    '<div class="d-inline-block">' +
+                    '<span class="h6 border border-info rounded-pill px-3 py-1">' + modalTitle[i] + '</span>' +
+                    '<span class="pl-4 h6">' + row.cells[i].innerHTML + '</span>'+
+                    '</div>' +
+                    '</div>';
+            }
+            modalData.innerHTML += '<div class="row justify-content-center mt-5">' +  row.cells[i].innerHTML + '</div>';
+
+            $('#rentalModal').modal('show');
+        }
+
+        // 오름차순으로 정렬
+        function sortTable(element) {
+            const n = element.getAttribute('data-index');
+            const table = document.getElementsByClassName('table')[0];
+            let rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
+            switching = true;
+            dir = "asc";
+            while (switching) {
+                switching = false;
+                rows = table.rows;
+                for (i = 1; i < (rows.length - 1); i++) {
+                    shouldSwitch = false;
+                    x = rows[i].getElementsByTagName("TD")[n];
+                    y = rows[i + 1].getElementsByTagName("TD")[n];
+                    if (dir === "asc") {
+                        if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+                            shouldSwitch = true;
+                            break;
+                        }
+                    } else if (dir === "desc") {
+                        if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
+                            shouldSwitch = true;
+                            break;
+                        }
+                    }
+                }
+                if (shouldSwitch) {
+                    rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                    switching = true;
+                    switchcount++;
+                } else {
+                    if (switchcount === 0 && dir === "asc") {
+                        dir = "desc";
+                        switching = true;
+                    }
+                }
+            }
+        }
+        /*]]>*/
+    </script>
+</div>
+</body>
+</html>
