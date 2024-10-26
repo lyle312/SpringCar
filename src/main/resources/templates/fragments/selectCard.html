@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<div th:fragment="selectCard(index, data, type)" class="card h-100" style="width: 18rem; margin-left: 10px; margin-right: 10px;">
+    <!-- 자동차 모델 카드 -->
+    <img th:if="${type == 'car'}" th:src="@{${data[2]}}" class="card-img-top img-fluid" style="height: 200px; object-fit: cover;">
+    <div th:if="${type == 'car'}" class="card-body d-flex flex-column justify-content-between">
+        <h5 class="card-title" th:text="${data[1]}"></h5>
+        <a th:href="@{'/car/rental/' + ${data[0]}}" class="btn btn-outline-info">차량 보기</a>
+    </div>
+</div>
+
+</body>
+</html>

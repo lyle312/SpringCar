@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/default_layout}">
+<head>
+    <title>차량 보기</title>
+</head>
+<main layout:fragment="content" class="container mt-5">
+    <h1 class="display-5">차량 보기</h1>
+    <div class="row container">
+        <div class="col">
+            <!-- 검색 창 -->
+            <div class="row container justify-content-end">
+                <div class="col-md-8">
+                    <form class="d-flex" action="" method="get">
+                        <input class="form-control me-2" type="search" th:placeholder="${search}" aria-label="Search" name="q">
+                        <button class="btn btn-outline-success" type="submit">Search</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 justify-content-end text-right">
+            <!-- 차량 등록 -->
+            <button sec:authorize="hasAuthority('ADMIN')" type="button" class="btn btn-outline-info" data-toggle="modal" data-target="#addCarModal">차량 등록</button>
+        </div>
+    </div>
+    <!-- 카 테이블 프래그먼트 -->
+    <div th:replace="~{fragments/table :: commonTable(${carListTitles}, ${carList}, 'manage')}"></div>
+
+    <!-- Add Car Modal -->
+    <div class="modal fade" id="addCarModal" tabindex="-1" role="dialog" aria-labelledby="addCarModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addCarModalLabel">차량 등록</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form id="carForm" th:action="@{/car/manage}" method="post">
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="carNumber">차량번호</label>
+                            <input type="text" class="form-control" id="carNumber" name="number" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="carModel">차종</label>
+                            <input type="text" class="form-control" id="carModel" name="model" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="carStatus">상태</label>
+                            <input type="text" class="form-control" id="carStatus" name="status">
+                        </div>
+                        <div class="form-group">
+                            <label for="carComment">메모</label>
+                            <textarea class="form-control" id="carComment" name="comment"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">등록하기</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Car Modal (Repeat for each car) -->
+    <div th:each="car : ${carList}" class="modal fade" th:id="'editCarModal-' + ${car[0]}" tabindex="-1" role="dialog" aria-labelledby="editCarModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" th:text="'차량 번호: ' + ${car[1]}"></h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form th:id="'carForm-' + ${car[0]}" th:action="@{/car/manage}" method="post">
+                    <div class="modal-body">
+                        <input type="hidden" name="id" th:value="${car[0]}"/>
+                        <input type="hidden" name="number" th:value="${car[1]}"/>
+                        <input type="hidden" name="model" th:value="${car[2]}"/>
+
+                        <div class="form-group">
+                            <label th:for="'carStatus-' + ${car[0]}">차량 상태</label>
+                            <input type="text" class="form-control" th:id="'carStatus-' + ${car[0]}" name="status" th:value="${car[3]}">
+                        </div>
+                        <div class="form-group">
+                            <label th:for="'carComment-' + ${car[0]}">메모 하기</label>
+                            <textarea class="form-control" th:id="'carComment-' + ${car[0]}" name="comment" th:text="${car[4]}"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-outline-primary">수정 완료</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 상세 정보 -->
+
+    <script>
+        function deleteCar(element) {
+            const carNumber = element.getAttribute('data-car-number');
+            if (confirm('정말로 차량을 삭제 하겠습니까?')) {
+                fetch(`/car/manage?number=${carNumber}`, { method: 'DELETE' })
+                    .then(response => {
+                        if (!response.ok) {
+                            alert('삭제 실패');
+                        }
+                        window.location.reload(); // 페이지 새로고침
+                    })
+                    .catch(error => {
+                        alert('An error occurred while deleting the car'); // 오류 발생 시 알림
+                    });
+            }
+        }
+
+        // Add Car Modal Form Submit Event Listener
+        document.getElementById('carForm').addEventListener('submit', function(event) {
+            event.preventDefault(); // 폼의 기본 제출 동작 방지
+
+            const formData = new FormData(this);
+
+            fetch(this.action, {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        alert('등록 실패');
+                    }
+                    // alert(data.message); // 서버 응답 메시지를 알림으로 표시
+                })
+                .catch(error => {
+                    alert('An error occurred while processing the request'); // 오류 발생 시 알림
+                })
+                .finally(() => {
+                    // 페이지 새로고침
+                    location.reload();
+                });
+        });
+
+        // Edit Car Modal Form Submit Event Listener
+        document.querySelectorAll("[id^='carForm-']").forEach((element) =>
+            element.addEventListener('submit', function(event) {
+                event.preventDefault(); // 폼의 기본 제출 동작 방지
+
+                const formData = new FormData(this);
+
+                fetch(this.action, {
+                    method: 'PUT',
+                    body: formData
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            alert('수정 실패');
+                        }
+                        // alert(data.message); // 서버 응답 메시지를 알림으로 표시
+                    })
+                    .catch(error => {
+                        alert('차량 수정에 실패하였습니다.'); // 오류 발생 시 알림
+                    })
+                    .finally(() => {
+                        // 페이지 새로고침
+                        location.reload();
+                    });
+            })
+        );
+
+    </script>
+
+
+</main>
+</html>
